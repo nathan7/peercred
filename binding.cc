@@ -35,8 +35,7 @@ NAN_METHOD(FromFd) {
   int fail = getsockopt(fd, LOCAL_PEERCRED, 1, &creds, &creds_len);
   if (!fail) {
     assert(xcreds.cr_version == XUCRED_VERSION);
-    creds.pid = xcreds.pid;
-    creds.gid = xcreds.gid;
+    creds.uid = xcreds.uid;
 
     socklen_t pid_len = sizeof creds.pid;
     fail = getsockopt(fd, SOL_LOCAL, LOCAL_PEERPID, &creds.pid, &pid_len);
