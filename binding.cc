@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #if __APPLE__ || __FreeBSD__
 #include <sys/ucred.h>
+#include <sys/un.h>
 #endif
 #include <nan.h>
 
@@ -15,17 +16,31 @@ NAN_METHOD(FromFd) {
   info.GetReturnValue().Set(ret);
 #define SET_RETVAL(key, value) Nan::Set(ret, Nan::New(#key).ToLocalChecked(), Nan::New(value))
 
+
 #if defined(SO_PEERCRED)
-  struct ucred creds; 
-  memset(&creds, 0, sizeof creds);
+  struct ucred creds;
   socklen_t creds_len = sizeof creds;
   int fail = getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &creds_len);
-#elif defined(LOCAL_PEERCRED)
-  struct xucred creds;
-  memset(&creds, 0, sizeof creds);
-  socklen_t creds_len = sizeof creds;
+#elif defined(LOCAL_PEERCRED) && defined(LOCAL_PEERPID)
+  struct {
+    pid_t pid;
+    uid_t uid;
+    gid_t gid;
+  } creds;
+
+  struct xucred xcreds;
+  socklen_t creds_len = sizeof xcreds;
+  memset(&xcreds, 0, sizeof xcreds);
+
   int fail = getsockopt(fd, LOCAL_PEERCRED, 1, &creds, &creds_len);
-  assert(fail != 0 || creds.cr_version == XUCRED_VERSION);
+  if (!fail) {
+    assert(xcreds.cr_version == XUCRED_VERSION);
+    creds.pid = xcreds.pid;
+    creds.gid = xcreds.gid;
+
+    socklen_t pid_len = sizeof creds.pid;
+    fail = getsockopt(fd, SOL_LOCAL, LOCAL_PEERPID, &creds.pid, &pid_len);
+  }
 #else
 #error "unsupported platform"
 #endif
