@@ -29,10 +29,8 @@ NAN_METHOD(FromFd) {
   } creds;
 
   struct xucred xcreds;
-  socklen_t creds_len = sizeof xcreds;
-  memset(&xcreds, 0, sizeof xcreds);
-
-  int fail = getsockopt(fd, LOCAL_PEERCRED, 1, &creds, &creds_len);
+  socklen_t xcreds_len = sizeof xcreds;
+  int fail = getsockopt(fd, SOL_LOCAL, LOCAL_PEERCRED, &xcreds, &xcreds_len);
   if (!fail) {
     assert(xcreds.cr_version == XUCRED_VERSION);
     creds.uid = xcreds.cr_uid;
