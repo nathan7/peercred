@@ -1,0 +1,20 @@
+{
+  "name": "peercred",
+  "version": "1.0.0",
+  "description": "SO_PEERCRED bindings for node",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nathan7/peercred.git"
+  },
+  "author": "Nathan Zadoks <nathan@nathan7.eu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nathan7/peercred/issues"
+  },
+  "homepage": "https://github.com/nathan7/peercred#readme",
+  "dependencies": {
+    "bindings": "^1.2.1",
+    "nan": "^2.3.3"
+  }
+}
