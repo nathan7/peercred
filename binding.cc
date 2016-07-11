@@ -22,10 +22,10 @@ NAN_METHOD(FromFd) {
   socklen_t creds_len = sizeof creds;
   int fail = getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &creds_len);
 #elif defined(LOCAL_PEERCRED) && defined(LOCAL_PEERPID)
+#define CRED_NOGID
   struct {
     pid_t pid;
     uid_t uid;
-    gid_t gid;
   } creds;
 
   struct xucred xcreds;
@@ -50,7 +50,9 @@ NAN_METHOD(FromFd) {
   } else {
     SET_RETVAL(pid, creds.pid);
     SET_RETVAL(uid, creds.uid);
+#ifndef CRED_NOGID
     SET_RETVAL(gid, creds.gid);
+#endif
   }
 }
 
