@@ -3,6 +3,8 @@
 #if __APPLE__ || __FreeBSD__
 #include <sys/ucred.h>
 #include <sys/un.h>
+#include <sys/proc_info.h>  // for struct proc_bsdshortinfo
+#include <libproc.h>        // for proc_pidinfo()
 #endif
 #include <nan.h>
 
@@ -22,7 +24,9 @@ NAN_METHOD(FromFd) {
   socklen_t creds_len = sizeof creds;
   int fail = getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &creds_len);
 #elif defined(LOCAL_PEERCRED) && defined(LOCAL_PEERPID)
-#define CRED_NOGID
+#define USE_PROC
+  struct proc_bsdshortinfo proc;
+
   struct {
     pid_t pid;
     uid_t uid;
@@ -38,6 +42,9 @@ NAN_METHOD(FromFd) {
     socklen_t pid_len = sizeof creds.pid;
     fail = getsockopt(fd, SOL_LOCAL, LOCAL_PEERPID, &creds.pid, &pid_len);
   }
+  if (!fail) {
+    fail = proc_pidinfo(creds.pid, PROC_PIDT_SHORTBSDINFO, 1, &proc, PROC_PIDT_SHORTBSDINFO_SIZE) != 0;
+  }
 #else
 #error "unsupported platform"
 #endif
@@ -47,7 +54,11 @@ NAN_METHOD(FromFd) {
   } else {
     SET_RETVAL(pid, creds.pid);
     SET_RETVAL(uid, creds.uid);
-#ifndef CRED_NOGID
+#ifdef USE_PROC
+    SET_RETVAL(ppid, proc.pbsi_ppid);
+    SET_RETVAL(pgid, proc.pbsi_pgid);
+    SET_RETVAL(gid, proc.pbsi_gid);
+#else
     SET_RETVAL(gid, creds.gid);
 #endif
   }
