@@ -43,7 +43,7 @@ NAN_METHOD(FromFd) {
     fail = getsockopt(fd, SOL_LOCAL, LOCAL_PEERPID, &creds.pid, &pid_len);
   }
   if (!fail) {
-    fail = proc_pidinfo(creds.pid, PROC_PIDT_SHORTBSDINFO, 1, &proc, PROC_PIDT_SHORTBSDINFO_SIZE) != 0;
+    fail = proc_pidinfo(creds.pid, PROC_PIDT_SHORTBSDINFO, 1, &proc, PROC_PIDT_SHORTBSDINFO_SIZE) == 0;
   }
 #else
 #error "unsupported platform"
